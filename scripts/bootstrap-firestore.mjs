@@ -1,5 +1,9 @@
 import { cert, getApps, initializeApp } from "firebase-admin/app";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
+import { loadEnvConfig } from "@next/env";
+
+loadEnvConfig(process.cwd());
+
 const required = [
   "FIREBASE_PROJECT_ID",
   "FIREBASE_CLIENT_EMAIL",
