@@ -1,7 +1,8 @@
 import { cert, getApps, initializeApp } from "firebase-admin/app";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
-import { loadEnvConfig } from "@next/env";
+import nextEnv from "@next/env";
 
+const { loadEnvConfig } = nextEnv;
 loadEnvConfig(process.cwd());
 
 const required = [
