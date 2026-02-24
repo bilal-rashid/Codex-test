@@ -3,6 +3,7 @@ import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import nextEnv from "@next/env";
 
 const { loadEnvConfig } = nextEnv;
+
 loadEnvConfig(process.cwd());
 
 const required = [
