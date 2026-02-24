@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { collection, getDocs, query, where } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { collection, FirestoreError, getDocs, query, where } from "firebase/firestore";
+import { auth, db } from "@/lib/firebase";
 import { Location } from "@/lib/types";
 
 export const useLocations = (restaurantId?: string) => {
@@ -30,8 +30,24 @@ export const useLocations = (restaurantId?: string) => {
             }))
             .filter((location) => location.isActive)
         );
-      } catch {
-        setError("Failed to load locations.");
+      } catch (err) {
+        const isPermissionDenied =
+          err instanceof FirestoreError && err.code === "permission-denied";
+
+        if (isPermissionDenied && !auth.currentUser && restaurantId === "default-restaurant") {
+          setLocations([
+            {
+              id: "default-location",
+              restaurantId: "default-restaurant",
+              name: "Main Location",
+              timezone: "UTC",
+              isActive: true
+            }
+          ]);
+          setError(null);
+        } else {
+          setError("Failed to load locations.");
+        }
       } finally {
         setLoading(false);
       }
