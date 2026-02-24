@@ -24,6 +24,19 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const STATIC_ADMIN_USERNAME = "admin";
+const STATIC_ADMIN_PASSWORD = "admin123";
+const STATIC_ADMIN_STORAGE_KEY = "static-admin-session";
+
+const staticAdminUser: AppUser = {
+  id: "static-admin",
+  name: "Admin",
+  email: "admin@local",
+  role: "admin",
+  restaurantId: "default-restaurant",
+  locationIds: [],
+  isActive: true
+};
 
 const mapUserDoc = (id: string, data: Record<string, unknown>): AppUser => ({
   id,
@@ -39,6 +52,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [firebaseUser, setFirebaseUser] = useState<User | null>(null);
   const [appUser, setAppUser] = useState<AppUser | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isStaticAdminSession, setIsStaticAdminSession] = useState(false);
 
   const loadAppUser = useCallback(async (uid: string) => {
     const userRef = doc(db, "users", uid);
@@ -51,6 +65,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   useEffect(() => {
+    const hasStaticSession = typeof window !== "undefined" && localStorage.getItem(STATIC_ADMIN_STORAGE_KEY) === "true";
+    if (hasStaticSession) {
+      setFirebaseUser(null);
+      setAppUser(staticAdminUser);
+      setIsStaticAdminSession(true);
+      setLoading(false);
+      return;
+    }
+
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setLoading(true);
       setFirebaseUser(user);
@@ -66,14 +89,35 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [loadAppUser]);
 
   const login = async (email: string, password: string) => {
+    if (email === STATIC_ADMIN_USERNAME && password === STATIC_ADMIN_PASSWORD) {
+      localStorage.setItem(STATIC_ADMIN_STORAGE_KEY, "true");
+      setFirebaseUser(null);
+      setAppUser(staticAdminUser);
+      setIsStaticAdminSession(true);
+      return;
+    }
+
     await signInWithEmailAndPassword(auth, email, password);
   };
 
   const logout = async () => {
+    if (isStaticAdminSession) {
+      localStorage.removeItem(STATIC_ADMIN_STORAGE_KEY);
+      setAppUser(null);
+      setFirebaseUser(null);
+      setIsStaticAdminSession(false);
+      return;
+    }
+
     await signOut(auth);
   };
 
   const refreshUser = async () => {
+    if (isStaticAdminSession) {
+      setAppUser(staticAdminUser);
+      return;
+    }
+
     if (!auth.currentUser) return;
     await loadAppUser(auth.currentUser.uid);
   };
