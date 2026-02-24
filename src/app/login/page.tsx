@@ -9,7 +9,7 @@ import { Toast } from "@/components/Toast";
 export default function LoginPage() {
   const { login, appUser, loading } = useAuth();
   const router = useRouter();
-  const [email, setEmail] = useState("");
+  const [usernameOrEmail, setUsernameOrEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -21,14 +21,14 @@ export default function LoginPage() {
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
-    if (!email || !password) {
-      setError("Email and password are required.");
+    if (!usernameOrEmail || !password) {
+      setError("Username/email and password are required.");
       return;
     }
     setError("");
     setSubmitting(true);
     try {
-      await login(email, password);
+      await login(usernameOrEmail, password);
     } catch {
       setError("Invalid credentials or account unavailable.");
     } finally {
@@ -42,12 +42,15 @@ export default function LoginPage() {
     <div className="mx-auto mt-16 max-w-md rounded-xl border bg-white p-6 shadow-sm">
       <h1 className="mb-4 text-xl font-semibold">Tip Distribution Login</h1>
       <form onSubmit={handleSubmit} className="space-y-3">
+        <p className="rounded border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+          Admin quick login: username <strong>admin</strong> and password <strong>admin123</strong>.
+        </p>
         <input
-          type="email"
-          placeholder="Email"
+          type="text"
+          placeholder="Username or Email"
           className="w-full rounded border px-3 py-2"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          value={usernameOrEmail}
+          onChange={(e) => setUsernameOrEmail(e.target.value)}
         />
         <input
           type="password"
