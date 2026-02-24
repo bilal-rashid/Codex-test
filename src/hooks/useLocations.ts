@@ -19,17 +19,16 @@ export const useLocations = (restaurantId?: string) => {
       }
       try {
         setLoading(true);
-        const q = query(
-          collection(db, "locations"),
-          where("restaurantId", "==", restaurantId),
-          where("isActive", "==", true)
-        );
+        setError(null);
+        const q = query(collection(db, "locations"), where("restaurantId", "==", restaurantId));
         const snapshot = await getDocs(q);
         setLocations(
-          snapshot.docs.map((docSnap) => ({
-            id: docSnap.id,
-            ...(docSnap.data() as Omit<Location, "id">)
-          }))
+          snapshot.docs
+            .map((docSnap) => ({
+              id: docSnap.id,
+              ...(docSnap.data() as Omit<Location, "id">)
+            }))
+            .filter((location) => location.isActive)
         );
       } catch {
         setError("Failed to load locations.");

@@ -20,18 +20,17 @@ export const useStaff = (restaurantId?: string, locationId?: string) => {
 
       setLoading(true);
       try {
-      const q = query(
-        collection(db, "staff"),
-        where("restaurantId", "==", restaurantId),
-        where("isActive", "==", true)
-      );
-      const snapshot = await getDocs(q);
-      const data = snapshot.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<StaffMember, "id">) }));
-      const filtered =
-        locationId && locationId.length
-          ? data.filter((s) => !s.locationIds || s.locationIds.includes(locationId))
-          : data;
-      setStaff(filtered);
+        setError(null);
+        const q = query(collection(db, "staff"), where("restaurantId", "==", restaurantId));
+        const snapshot = await getDocs(q);
+        const data = snapshot.docs
+          .map((d) => ({ id: d.id, ...(d.data() as Omit<StaffMember, "id">) }))
+          .filter((member) => member.isActive);
+        const filtered =
+          locationId && locationId.length
+            ? data.filter((s) => !s.locationIds || s.locationIds.includes(locationId))
+            : data;
+        setStaff(filtered);
       } catch {
         setError("Failed to load staff.");
       } finally {
